@@ -147,7 +147,7 @@ async function handleSubmit() {
 
 async function addOrg() {
     const requestURL =
-        "https://mintetang.github.io/roster3/scripts/nameroll1.json";
+        "https://mintetang.github.io/roster4/scripts/nameroll1.json";
 
     const response = await fetch(requestURL);
     const rData = await response.json();
