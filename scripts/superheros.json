@@ -1,0 +1,51 @@
+{
+  "squadName" : "點名簿",
+  "homeTown" : "台北市",
+  "formed" : 2026,
+  "secretBase" : "信義堂會友",
+  "active" : true,
+  "members" : [
+    {
+      "name" : "曹牧師",
+      "age" : 56,
+      "secretIdentity" : "主任牧師",
+      "powers" : [
+        "講道",
+        "牧會",
+        "音樂"
+      ]
+    },
+    {
+      "name" : "譚教師",
+      "age" : 59,
+      "secretIdentity" : "行政總管",
+      "powers" : [
+        "行政",
+        "團隊",
+        "牧養"
+      ]
+    },
+    {
+      "name" : "裘牧師",
+      "age" : 50,
+      "secretIdentity" : "專任牧師",
+      "powers" : [
+        "牧養",
+        "關懷",
+        "禱告",
+        "講道"
+      ]
+    },
+    {
+      "name" : "饒大衛",
+      "age" : 67,
+      "secretIdentity" : "長老",
+      "powers" : [
+        "牧養",
+        "關懷",
+        "禱告",
+        "講道"
+      ]
+    }
+  ]
+}

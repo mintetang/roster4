@@ -1,0 +1,60 @@
+html {
+  /* px means "pixels". The base font size is now 10 pixels high */
+  font-size: 10px;
+  /* Replace PLACEHOLDER with the font-family property value you got from Google Fonts */
+  font-family: "Noto Sans TC", sans-serif;
+  background-color: #0733e3;
+}
+
+h1 {
+  font-size: 60px;
+  text-align: center;
+  margin: 0;
+  padding: 20px 0;
+  color: #00539f;
+  text-shadow: 3px 3px 1px black;
+}
+body {
+  width: 600px;
+  margin: 0 auto;
+  background-color: #ff9500;
+  padding: 0 20px 20px 20px;
+  border: 5px solid black;
+}
+button {
+  width: 10em;
+  margin: 0 auto;
+  background-color: #00ff37;
+  padding: 10px 10px 10px 10px;
+  border: 5px dashed rgb(0, 0, 0);
+  font-size: 16px;
+  box-shadow: 
+    inset 2px 2px 5px rgba(0, 0, 0, 0.2),   /* Dark shadow for depth */
+    inset -2px -2px 5px rgba(255, 255, 255, 0.7); /* Light highlight for raised effect */
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.3),         /* Dark text shadow */
+    -1px -1px 2px rgba(255, 255, 255, 0.7); /* Light text highlight */
+  transition: all 0.2s ease-in-out; /* Smooth transitions */
+}
+img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+p,
+li,a {
+  font-size: 16px;
+  line-height: 2;
+  letter-spacing: 1px;
+}
+/*li {
+  background-color: greenyellow;
+  border: 1px solid black;
+  width: 20em;
+  margin-bottom: 5px;
+}
+a {
+  font-family: "Noto Sans TC", sans-serif;
+  color: blue;
+}
+*/

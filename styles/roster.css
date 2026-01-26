@@ -1,0 +1,85 @@
+/* || general styles */
+
+html {
+  font-family: 'helvetica neue', helvetica, arial, sans-serif;
+}
+
+header {
+  font-weight: bold;
+  //text-align: center;
+}
+
+body {
+  width: 600px;
+  margin: 20px ;
+}
+
+h1, h2 {
+  font-family: 'Faster One', cursive;
+}
+
+/* header styles */
+
+h1 {
+  font-size: 2rem;
+  text-align: center;
+}
+
+h2  {
+  font-size: 1rem;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+label {color:blue;
+font-weight: bold;}
+input[type="date"] {margin-right: 1.5em}
+label[for="session2"] {margin-left: 1em}
+//label[name="lab2"] {display: block}
+/* section styles */
+
+section article {
+  width: 20%;
+  float: left;
+}
+article {
+  margin-top: 20px;
+  padding: 5px;
+  border-right:  dashed 1px;
+  border-bottom: green dashed 1px;
+}
+
+section p {
+  font-size: 1rem;
+  margin: 5px 0;
+}
+
+section ul {
+  margin-top: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+ul {
+  padding-left: 0;
+}
+
+li {
+  display: block;
+  float: left;
+  width: 25%;
+  border: 2px solid white;
+  padding: 5px;
+  height: 40px;
+  background-color: #4a2db6;
+  color: white;
+}
+
+#resultSectin {
+  display: block;
+  border: 2px solid rgba(10, 57, 223, 0.215);
+  background-color: #4a2db6;
+  color: white;
+}

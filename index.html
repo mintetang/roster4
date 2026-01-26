@@ -1,0 +1,309 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" 
+          content="width=device-width, initial-scale=1.0">
+    <title>Attendance Portal</title>
+    <link rel="stylesheet" href="styles/roster2.css">
+    <style></style>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script type="module" crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <div class="navbar-brand">
+            <h1> 
+                出席統計
+            </h1>
+        </div>
+        <div class="navbar-links">
+            <p>
+                2026年 
+                <span id="academicYear"></span>
+            </p>
+            <!-- Add other relevant information -->
+        </div>
+    </div>
+
+    <div class="container">
+        <div>
+<!--       <button id="exlocal" 
+        onclick="exportLocalStorage()">
+        儲存出席紀錄 
+        </button>
+        <button id="inlocal"
+        onclick="showreadForm()">
+        讀回出席紀錄
+        </button>--> 
+        <label id="googleNote">
+            點名時請先<span>"登入認證"</span>=>“讀回Google”<br>
+            點名完成後再<span>"登入認證"</span>=>“儲存Google”
+          </label>
+          <button id="authorize_button">登入認證</button>
+          ==>
+          <button id="googleIn" onclick="googleIn()">讀回Google</button>
+          OR
+          <button id="update_button" onclick="overwriteFile()">儲存Google</button>
+        <button id="clean" 
+        onclick="cleanSelectedClass()">刪除出席記錄 
+        </div>
+        <div id="formSection">
+            <div id="formTitle">
+            <!--<h2>出席記錄</h2>-->
+            <h4>1開始</h4>
+            <button class = 'refresh' onclick="location.reload()">
+                 刷新頁面
+            </button>
+            <button id="addClassButton" 
+                onclick="showAddClassForm()">
+                 📅 加入堂次
+            </button>
+            <h4>2名單</h4>            
+            <!--<button id="addStudentOrgButton" 
+                onclick="showAddStudentOrgForm()">
+                 匯入名單
+            </button>
+            <button id="readOrgButton" 
+                onclick="showreadOrgForm()">
+                 上次名單
+            </button>-->
+            <button id="addStudentButton" 
+                onclick="showAddStudentForm()">
+                 ..👤 加入新朋友
+            </button>
+                        <h4>3統計</h4>
+            <button id="submitAtt1" onclick="submitAttendance();histRate()">
+                 📊 送出統計
+            </button>
+			             
+            <label for="classSelector">日期和堂次記錄:</label>
+            <select id="classSelector" required 
+                onchange="showStudentsList()">
+            </select>
+            
+            <!--<label for="rollno">搜尋編號: </label>
+            <input type="text" id="rollno" required
+                size="10" onchange="searchRoll()"> 
+            <input type="text" id="searchTermInput" placeholder="輸入會友名稱">
+            <button onclick="searchAndHighlight()">Search</button>-->
+            <form id="searchForm" onsubmit="searchAndHighlight(); return false;">
+            <input
+                type="text"
+                id="searchTermInput"
+                placeholder="輸入姓名或編號"
+            >
+            <button type="submit">搜尋</button>
+            </form>
+            <a href="#googleNote" class="skip-link">快捷上↑⬆️</a>
+            <a href="#resultSection" class="skip-link">快捷下↓⬇️</a>
+        </div>
+
+            <ul id="studentsList">
+                <!-- Populate students dynamically 
+                    based on the selected class -->
+            </ul>
+
+            <div id="summarySection">
+                <h3>出席總計</h3>
+                <p>
+                    全部人數: 
+                    <span id="totalStudents">0</span>
+                </p>
+                <p>
+                    第1堂出席人數: 
+                    <span id="totalPresent1">0</span>
+                </p>
+                <p>
+                    第2堂出席人數: 
+                    <span id="totalPresent2">0</span>
+                </p>
+            </div>
+
+            <!--<button id="submitAtt2" onclick="submitAttendance()">
+                4 確認送出統計
+            </button>
+            <button onclick="histRate()">
+                5 更新歷史出席率
+            </button> -->
+
+            <!-- Result Section <div id="resultSection" style="display: none;">-->            
+            <div id="resultSection">
+                <h3>統計結果</h3>
+                <p>
+                    執行日期時間: 
+                    <span id="attendanceDate"></span>
+                    <span id="attendanceTime"></span>
+                </p>
+                <p>
+                    紀錄日期: 
+                    <span id="attendanceClass"></span>
+                </p>
+                <p>
+                    全部紀錄人數: 
+                    <span id="attendanceTotalStudents"></span>
+                </p>
+                <p>
+                    總出席人數（1+2堂）: 
+                    <span id="attendancePresent"></span>
+                </p>
+                <p>
+                    缺席人數: 
+                    <span id="attendanceAbsent"></span>
+                </p>
+<!--                <p>
+                    請假人數: 
+                    <span id="attendanceLeave"></span>
+                </p>-->
+                <p>
+                    第1堂出席率: 
+                    <span id="attendanceRate1"></span>
+                </p>
+                <p>
+                    第2堂出席率: 
+                    <span id="attendanceRate2"></span>
+                </p>
+                <p>
+                    總出席率: 
+                    <span id="attendanceRate"></span>
+                </p>
+                <button onclick="histRate()">
+                 統計圖
+                </button>
+        </div>
+    </div>
+
+            <!-- Historical Section -->            
+            <div id="hisSection">
+                <h3>出席率統計圖</h3>
+                
+                <p>
+                    <!--紀錄日期堂次:  -->
+                    <span id="attP"></span>
+                </p>
+                <canvas id="myChart"></canvas>
+            </div>
+
+    <div id="addStudentOrgPopup" class="popup">
+        <h2>初始會友名單</h2>
+        <!-- Add all org memebers from json -->
+        <label for="org">
+            匯入初始會友名單?
+        </label>
+        <input type="file" hidden id="org">
+
+        <!-- Add more fields as needed 
+         <button onclick="addOrg()">
+             <button onclick="showStudentsList()">-->
+
+        <button onclick="addOrg()">
+            確認
+        </button>
+        <button onclick="closePopup()">
+            取消
+        </button>
+    </div>
+
+    <div id="readOrgPopup" class="popup">
+        <h2>使用上次會友名單</h2>
+        <!-- Add all org memebers from json -->
+        <label for="rl">
+            請注意！！！ <br>
+            名單空白才能使用上次會友名單。
+        </label>
+        <input type="file" hidden id="rl">
+
+        <!-- Add more fields as needed 
+         <button onclick="addOrg()">
+             <button onclick="showStudentsList()">-->
+
+        <button onclick="readOrg()">
+            確認
+        </button>
+        <button onclick="closePopup()">
+            取消
+        </button>
+    </div>
+
+    <div id="readPopup" class="popup">
+        <h2>select json file</h2>
+        <!-- Retore localStorage from json -->
+        <label for="restoreFileInput">
+            select json file
+        </label>
+        <input type="file" id="restoreFileInput" 
+        accept=".json" onchange="rlsFromFile(event)">
+
+        <button onclick="closePopup()">
+            取消
+        </button>
+    </div>
+
+    <div id="addClassPopup" class="popup">
+        <h2>加入日期</h2>
+        <!-- Add Class Form Content -->
+        <label for="newClassName">
+            日期:
+        </label>
+        <input type="date" id="newClassName" required>
+        <!-- <label for="session">選擇第幾堂:</label>
+        <select id="session" required>
+            <option value="第1堂" selected>第1堂</option>
+            <option value="第2堂">第2堂</option>
+            <option value="第3堂">第3堂</option>				
+
+            </select>
+        Add more fields as needed -->
+
+        <button onclick="handleSubmit()">
+            送出
+        </button>
+        <button onclick="closePopup()">
+            取消
+        </button>
+    </div>
+    <div id="addStudentPopup" class="popup">
+        <h2>加入新會友</h2>
+        <!-- Add Student Form Content -->
+        <label for="newStudentName">
+            會友名稱:
+        </label>
+        <input type="text" id="newStudentName" required>
+        <label for="newStudentRoll">
+            編號:
+        </label>
+        <input type="text" id="newStudentRoll" required>
+        <!-- Add more fields as needed -->
+
+        <button onclick="addStudent()">
+            送出
+        </button>
+        <button onclick="closePopup()">
+            取消
+        </button>
+    </div>
+    <div>
+        <button id="exlocal" 
+        onclick="exportLocalStorage()">
+        暫存紀錄 
+        </button>
+        <button id="inlocal"
+        onclick="showreadForm()">
+        讀回暫存紀錄
+        </button>
+        <button id="clean" 
+        onclick="cleanSelectedClass()">刪除出席記錄 
+        </button>
+    </div>
+    </button><p id="pfileId">1Hpp1mb0gL_5kUUR09j6v7HVLXfyK90Sw</p>
+    <script src="scripts/roster2.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
