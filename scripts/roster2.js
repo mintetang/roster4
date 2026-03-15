@@ -1152,7 +1152,7 @@ window.onload = async () => {
 };
 
 // Fallback button
-document.getElementById("authorize_button").onclick = handleAuthClick;
+//document.getElementById("authorize_button").onclick = handleAuthClick;
 
 //declaire fileId to set in upload and use in googleIn
 
