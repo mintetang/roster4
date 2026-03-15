@@ -1056,103 +1056,74 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// ===== Google Config =====
+// ===== Google config =====
 const CLIENT_ID =
   "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
 
 const API_KEY =
   "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
 
-const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
+const DISCOVERY_DOC =
+  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 
-// ===== Globals =====
+// ===== State =====
 let tokenClient;
-let gapiReady = false;
+let gapiInited = false;
+let gisInited = false;
+initGoogleDriveAuth();
 
-// ===== Initialize =====
-async function initGoogle() {
+function initGoogleDriveAuth() {
+  if (!window.gapi || !window.google?.accounts) {
+    setTimeout(initGoogleDriveAuth, 100);
+    return;
+  }
 
-  await new Promise(resolve => gapi.load("client", resolve));
+  const authBtn = document.getElementById("authorize_button");
+  if (authBtn) {
+    authBtn.onclick = handleAuthClick;
+  }
 
-  await gapi.client.init({
-    apiKey: API_KEY,
-    discoveryDocs: [DISCOVERY_DOC],
+  gapi.load("client", async () => {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: [DISCOVERY_DOC],
+    });
+    gapiInited = true;
+    maybeEnableButtons();
   });
 
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
-    callback: handleTokenResponse,
+    callback: "", // defined later"",
   });
 
-  gapiReady = true;
-
-  restoreToken();
+  gisInited = true;
+  maybeEnableButtons();
 }
+document.getElementById("authorize_button")
+  .addEventListener("click", function () {
+    this.classList.toggle("clicked");
+  });
 
-// ===== Token Handler =====
-function handleTokenResponse(resp) {
-
-  if (resp.error) {
-    console.error(resp);
-    return;
-  }
-
-  gapi.client.setToken(resp);
-
-  // persist token for refresh
-  localStorage.setItem("gdrive_token", JSON.stringify(resp));
-
-  console.log("Google Drive Authorized");
-}
-
-// ===== Restore Token After Refresh =====
-function restoreToken() {
-
-  const saved = localStorage.getItem("gdrive_token");
-
-  if (saved) {
-    const token = JSON.parse(saved);
-    gapi.client.setToken(token);
+function maybeEnableButtons() {
+  if (gapiInited && gisInited) {
+    document.getElementById("authorize_button").disabled = false;
   }
 }
 
-// ===== Login Button =====
-function authorizeDrive() {
-
-  if (!gapi.client.getToken()) {
+function handleAuthClick() {
     tokenClient.requestAccessToken({ prompt: "consent" });
-  }
-}
+    }
 
-// ===== Silent Auth =====
-function silentAuth() {
-
-  if (!gapi.client.getToken()) {
+    // Try silent auth once user interacts
+    document.addEventListener("click", () => {
     tokenClient.requestAccessToken({ prompt: "" });
-  }
-}
-
-// ===== Page Init =====
-window.onload = async () => {
-
-  await initGoogle();
-
-  document
-    .getElementById("authorize_button")
-    .addEventListener("click", authorizeDrive);
-
-  // attempt silent auth once user interacts
-  document.addEventListener(
-    "click",
-    () => silentAuth(),
-    { once: true }
-  );
-};
+    }, { once: true });
 
 // Fallback button
-//document.getElementById("authorize_button").onclick = handleAuthClick;
+document.getElementById("authorize_button").onclick = handleAuthClick;
 
 //declaire fileId to set in upload and use in googleIn
 
