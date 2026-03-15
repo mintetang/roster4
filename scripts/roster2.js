@@ -1056,91 +1056,97 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// for Google Output to drive
+// ===== Google Config =====
+const CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+const API_KEY = "YOUR_API_KEY";
 
-
-// ===== Google config =====
-const CLIENT_ID =
-  "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
-
-const API_KEY =
-  "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
-
+const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
-const DISCOVERY_DOC =
-  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 
-// ===== State =====
+// ===== Globals =====
 let tokenClient;
-let gapiInited = false;
-let gisInited = false;
-initGoogleDriveAuth();
+let gapiReady = false;
 
-function initGoogleDriveAuth() {
-  if (!window.gapi || !window.google?.accounts) {
-    setTimeout(initGoogleDriveAuth, 100);
-    return;
-  }
+// ===== Initialize =====
+async function initGoogle() {
 
-  const authBtn = document.getElementById("authorize_button");
-  if (authBtn) {
-    authBtn.onclick = handleAuthClick;
-  }
+  await new Promise(resolve => gapi.load("client", resolve));
 
-  gapi.load("client", async () => {
-    await gapi.client.init({
-      apiKey: API_KEY,
-      discoveryDocs: [DISCOVERY_DOC],
-    });
-    gapiInited = true;
-    maybeEnableButtons();
+  await gapi.client.init({
+    apiKey: API_KEY,
+    discoveryDocs: [DISCOVERY_DOC],
   });
 
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
-    callback: "", // defined later"",
+    callback: handleTokenResponse,
   });
 
-  gisInited = true;
-  maybeEnableButtons();
+  gapiReady = true;
+
+  restoreToken();
 }
-document.getElementById("authorize_button")
-  .addEventListener("click", function () {
-    this.classList.toggle("clicked");
-  });
-//make button dimmed or blink after clicked
-/*document
-  .getElementById("authorize_button")
-  .addEventListener("click", function () {
-    this.classList.add("dimmed");
-  });
-document.getElementById("upload_button").addEventListener("click", function () {
-  this.classList.add("blink");
-});
 
-document.getElementById("googleIn").addEventListener("click", function () {
-  this.classList.add("blink");
-});
+// ===== Token Handler =====
+function handleTokenResponse(resp) {
 
-document.getElementById("update_button").addEventListener("click", function () {
-  this.classList.add("blink");
-});*/
+  if (resp.error) {
+    console.error(resp);
+    return;
+  }
 
-function maybeEnableButtons() {
-  if (gapiInited && gisInited) {
-    document.getElementById("authorize_button").disabled = false;
+  gapi.client.setToken(resp);
+
+  // persist token for refresh
+  localStorage.setItem("gdrive_token", JSON.stringify(resp));
+
+  console.log("Google Drive Authorized");
+}
+
+// ===== Restore Token After Refresh =====
+function restoreToken() {
+
+  const saved = localStorage.getItem("gdrive_token");
+
+  if (saved) {
+    const token = JSON.parse(saved);
+    gapi.client.setToken(token);
   }
 }
 
-function handleAuthClick() {
-    tokenClient.requestAccessToken({ prompt: "consent" });
-    }
+// ===== Login Button =====
+function authorizeDrive() {
 
-    // Try silent auth once user interacts
-    document.addEventListener("click", () => {
+  if (!gapi.client.getToken()) {
+    tokenClient.requestAccessToken({ prompt: "consent" });
+  }
+}
+
+// ===== Silent Auth =====
+function silentAuth() {
+
+  if (!gapi.client.getToken()) {
     tokenClient.requestAccessToken({ prompt: "" });
-    }, { once: true });
+  }
+}
+
+// ===== Page Init =====
+window.onload = async () => {
+
+  await initGoogle();
+
+  document
+    .getElementById("authorize_button")
+    .addEventListener("click", authorizeDrive);
+
+  // attempt silent auth once user interacts
+  document.addEventListener(
+    "click",
+    () => silentAuth(),
+    { once: true }
+  );
+};
 
 // Fallback button
 document.getElementById("authorize_button").onclick = handleAuthClick;
