@@ -1126,7 +1126,7 @@ function authorizeDrive() {
 function silentAuth() {
 
   if (!gapi.client.getToken()) {
-    tokenClient.requestAccessToken({ prompt: "" });
+    tokenClient.requestAccessToken({ prompt: "consent" });
   }
 }
 
