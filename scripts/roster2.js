@@ -1131,6 +1131,7 @@ function silentAuth() {
 }
 
 // ===== Page Init =====
+
 window.onload = async () => {
 
   await initGoogle();
@@ -1147,6 +1148,57 @@ window.onload = async () => {
   );
 };
 
+window.addEventListener("load", async () => {
+
+  try {
+
+    // initialize Google API
+    await initGoogle();
+
+    // attempt silent login if no token yet
+    if (!gapi.client.getToken()) {
+
+      await new Promise((resolve, reject) => {
+
+        tokenClient.callback = (resp) => {
+
+          if (resp.error) {
+            reject(resp);
+            return;
+          }
+
+          gapi.client.setToken(resp);
+          resolve(resp);
+        };
+
+        tokenClient.requestAccessToken({ prompt: "consent" });
+
+      });
+
+    }
+
+    // run sync only once per browser session
+    if (!sessionStorage.getItem("driveAutoSynced")) {
+
+      console.log("Auto Google Drive sync running...");
+
+      await googleIn();
+
+      sessionStorage.setItem("driveAutoSynced", "true");
+
+    } else {
+
+      console.log("Auto sync already done this session.");
+
+    }
+
+  } catch (err) {
+
+    console.log("Auto Google sync skipped:", err);
+
+  }
+
+});
 //declaire fileId to set in upload and use in googleIn
 
 async function uploadToDrive() {
