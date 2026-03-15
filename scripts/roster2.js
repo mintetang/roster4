@@ -1120,7 +1120,7 @@ function maybeEnableButtons() {
 
 function handleAuthClick() {
   // Try silent auth first
-  tokenClient.requestAccessToken({ prompt: "" });
+  tokenClient.requestAccessToken({ prompt: "consent" });
 }
 
 // Restore token from storage
