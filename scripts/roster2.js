@@ -131,23 +131,18 @@ function readOrg() {
 }
 
 async function handleSubmit() {
-  // 1️⃣ must read from Drive first
-  const driveOK = await googleIn();
-  if (!driveOK) return; // ⛔ stop everything
+    const success = addClass();
 
-  // 2️⃣ addClass
-  const success = addClass();
-  if (!success) return; // ⛔ stop before addOrg
+    // ⛔ stop immediately if addClass failed
+    if (!success) return;
 
-  // 3️⃣ addOrg
-  await addOrg();
+    await addOrg();
 }
-
 
 
 async function addOrg() {
     const requestURL =
-        "https://mintetang.github.io/roster4/scripts/nameroll1.json";
+        "https://mintetang.github.io/roster3/scripts/nameroll1.json";
 
     const response = await fetch(requestURL);
     const rData = await response.json();
@@ -1056,8 +1051,88 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
 // ===== Google config =====
 const CLIENT_ID =
+  "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
+
+const API_KEY =
+  "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
+
+const SCOPES = "https://www.googleapis.com/auth/drive.file";
+const DISCOVERY_DOC =
+  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
+
+// ===== State =====
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
+
+initGoogleDriveAuth();
+
+function initGoogleDriveAuth() {
+  if (!window.gapi || !window.google?.accounts) {
+    setTimeout(initGoogleDriveAuth, 100);
+    return;
+  }
+
+  const authBtn = document.getElementById("authorize_button");
+  authBtn.onclick = handleAuthClick;
+
+  // Initialize Google API
+  gapi.load("client", async () => {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: [DISCOVERY_DOC],
+    });
+
+    gapiInited = true;
+    restoreToken(); // try restoring token
+    maybeEnableButtons();
+  });
+
+  // Initialize OAuth client
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (resp) => {
+      if (resp.error) {
+        console.error(resp);
+        return;
+      }
+
+      gapi.client.setToken(resp);
+
+      // save token so refresh doesn't require auth
+      localStorage.setItem("gdrive_token", JSON.stringify(resp));
+    },
+  });
+
+  gisInited = true;
+  maybeEnableButtons();
+}
+
+function maybeEnableButtons() {
+  if (gapiInited && gisInited) {
+    document.getElementById("authorize_button").disabled = false;
+  }
+}
+
+function handleAuthClick() {
+  // Try silent auth first
+  tokenClient.requestAccessToken({ prompt: "" });
+}
+
+// Restore token from storage
+function restoreToken() {
+  const saved = localStorage.getItem("gdrive_token");
+
+  if (saved) {
+    const token = JSON.parse(saved);
+    gapi.client.setToken(token);
+  }
+}
+/*const CLIENT_ID =
   "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
 
 const API_KEY =
@@ -1107,6 +1182,7 @@ document.getElementById("authorize_button")
     this.classList.toggle("clicked");
   });
 
+
 function maybeEnableButtons() {
   if (gapiInited && gisInited) {
     document.getElementById("authorize_button").disabled = false;
@@ -1122,6 +1198,7 @@ function handleAuthClick() {
     tokenClient.requestAccessToken({ prompt: "" });
     }, { once: true });
 
+*/
 // Fallback button
 document.getElementById("authorize_button").onclick = handleAuthClick;
 
@@ -1168,10 +1245,11 @@ async function uploadToDrive() {
 
 async function googleIn() {
   const accessToken = gapi.client.getToken()?.access_token;
+  console.log(accessToken);
 
   if (!accessToken) {
     alert("❌ 尚未取得授權，請先登入認證");
-    return false;
+    return;
   }
 
   if (typeof fileId === "undefined") {
@@ -1192,6 +1270,7 @@ async function googleIn() {
       throw new Error(`HTTP ${response.status}`);
     }
 
+    // SAFER for Drive files
     const text = await response.text();
     const fileContent = JSON.parse(text);
 
@@ -1200,13 +1279,12 @@ async function googleIn() {
       localStorage.setItem(key, fileContent[key]);
     }
 
-    alert("✅ 成功讀回紀錄!");
-    return true;   // ⭐ IMPORTANT
+    alert("成功讀回紀錄!");
+    setTimeout(() => location.reload(), 300);
 
   } catch (error) {
     console.error("Failed to read file:", error);
     alert("❌ 讀取失敗，請確認登入認證？");
-    return false;  // ⭐ IMPORTANT
   }
 }
 
@@ -1260,3 +1338,21 @@ async function overwriteFile() {
     alert("❌ 更新失敗，請確認登入認證？");
   }
 }
+
+//make button dimmed or blink after clicked
+/*document
+  .getElementById("authorize_button")
+  .addEventListener("click", function () {
+    this.classList.add("dimmed");
+  });
+document.getElementById("upload_button").addEventListener("click", function () {
+  this.classList.add("blink");
+});
+
+document.getElementById("googleIn").addEventListener("click", function () {
+  this.classList.add("blink");
+});
+
+document.getElementById("update_button").addEventListener("click", function () {
+  this.classList.add("blink");
+});*/
