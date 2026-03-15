@@ -1052,79 +1052,60 @@ function sleep(ms) {
 }
 
 
-// ===== Google config =====
+// ===== Google Config =====
 const CLIENT_ID =
   "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
 
 const API_KEY =
   "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
 
+const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
-const DISCOVERY_DOC =
-  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 
-// ===== State =====
+// ===== Globals =====
 let tokenClient;
-let gapiInited = false;
-let gisInited = false;
+let gapiReady = false;
 
-initGoogleDriveAuth();
+// ===== Initialize =====
+async function initGoogle() {
 
-function initGoogleDriveAuth() {
-  if (!window.gapi || !window.google?.accounts) {
-    setTimeout(initGoogleDriveAuth, 100);
-    return;
-  }
+  await new Promise(resolve => gapi.load("client", resolve));
 
-  const authBtn = document.getElementById("authorize_button");
-  authBtn.onclick = handleAuthClick;
-
-  // Initialize Google API
-  gapi.load("client", async () => {
-    await gapi.client.init({
-      apiKey: API_KEY,
-      discoveryDocs: [DISCOVERY_DOC],
-    });
-
-    gapiInited = true;
-    restoreToken(); // try restoring token
-    maybeEnableButtons();
+  await gapi.client.init({
+    apiKey: API_KEY,
+    discoveryDocs: [DISCOVERY_DOC],
   });
 
-  // Initialize OAuth client
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
-    callback: (resp) => {
-      if (resp.error) {
-        console.error(resp);
-        return;
-      }
-
-      gapi.client.setToken(resp);
-
-      // save token so refresh doesn't require auth
-      localStorage.setItem("gdrive_token", JSON.stringify(resp));
-    },
+    callback: handleTokenResponse,
   });
 
-  gisInited = true;
-  maybeEnableButtons();
+  gapiReady = true;
+
+  restoreToken();
 }
 
-function maybeEnableButtons() {
-  if (gapiInited && gisInited) {
-    document.getElementById("authorize_button").disabled = false;
+// ===== Token Handler =====
+function handleTokenResponse(resp) {
+
+  if (resp.error) {
+    console.error(resp);
+    return;
   }
+
+  gapi.client.setToken(resp);
+
+  // persist token for refresh
+  localStorage.setItem("gdrive_token", JSON.stringify(resp));
+
+  console.log("Google Drive Authorized");
 }
 
-function handleAuthClick() {
-  // Try silent auth first
-  tokenClient.requestAccessToken({ prompt: "consent" });
-}
-
-// Restore token from storage
+// ===== Restore Token After Refresh =====
 function restoreToken() {
+
   const saved = localStorage.getItem("gdrive_token");
 
   if (saved) {
@@ -1132,75 +1113,39 @@ function restoreToken() {
     gapi.client.setToken(token);
   }
 }
-/*const CLIENT_ID =
-  "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
 
-const API_KEY =
-  "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
+// ===== Login Button =====
+function authorizeDrive() {
 
-const SCOPES = "https://www.googleapis.com/auth/drive.file";
-const DISCOVERY_DOC =
-  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
-
-// ===== State =====
-let tokenClient;
-let gapiInited = false;
-let gisInited = false;
-initGoogleDriveAuth();
-
-function initGoogleDriveAuth() {
-  if (!window.gapi || !window.google?.accounts) {
-    setTimeout(initGoogleDriveAuth, 100);
-    return;
-  }
-
-  const authBtn = document.getElementById("authorize_button");
-  if (authBtn) {
-    authBtn.onclick = handleAuthClick;
-  }
-
-  gapi.load("client", async () => {
-    await gapi.client.init({
-      apiKey: API_KEY,
-      discoveryDocs: [DISCOVERY_DOC],
-    });
-    gapiInited = true;
-    maybeEnableButtons();
-  });
-
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: "", // defined later"",
-  });
-
-  gisInited = true;
-  maybeEnableButtons();
-}
-document.getElementById("authorize_button")
-  .addEventListener("click", function () {
-    this.classList.toggle("clicked");
-  });
-
-
-function maybeEnableButtons() {
-  if (gapiInited && gisInited) {
-    document.getElementById("authorize_button").disabled = false;
-  }
-}
-
-function handleAuthClick() {
+  if (!gapi.client.getToken()) {
     tokenClient.requestAccessToken({ prompt: "consent" });
-    }
+  }
+}
 
-    // Try silent auth once user interacts
-    document.addEventListener("click", () => {
+// ===== Silent Auth =====
+function silentAuth() {
+
+  if (!gapi.client.getToken()) {
     tokenClient.requestAccessToken({ prompt: "" });
-    }, { once: true });
+  }
+}
 
-*/
-// Fallback button
-document.getElementById("authorize_button").onclick = handleAuthClick;
+// ===== Page Init =====
+window.onload = async () => {
+
+  await initGoogle();
+
+  document
+    .getElementById("authorize_button")
+    .addEventListener("click", authorizeDrive);
+
+  // attempt silent auth once user interacts
+  document.addEventListener(
+    "click",
+    () => silentAuth(),
+    { once: true }
+  );
+};
 
 //declaire fileId to set in upload and use in googleIn
 
