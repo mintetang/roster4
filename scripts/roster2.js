@@ -1057,8 +1057,11 @@ function sleep(ms) {
 }
 
 // ===== Google Config =====
-const CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
-const API_KEY = "YOUR_API_KEY";
+const CLIENT_ID =
+  "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
+
+const API_KEY =
+  "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
 
 const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
