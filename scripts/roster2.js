@@ -1059,33 +1059,56 @@ const CLIENT_ID =
 const API_KEY =
   "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
 
-const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
-const SCOPES = "https://www.googleapis.com/auth/drive.file";
+const DISCOVERY_DOC =
+  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
+
+const SCOPES =
+  "https://www.googleapis.com/auth/drive.file";
+
 
 // ===== Globals =====
 let tokenClient;
 let gapiReady = false;
+let googleInitPromise = null;
 
-// ===== Initialize =====
-async function initGoogle() {
 
-  await new Promise(resolve => gapi.load("client", resolve));
+// ===== Lazy Google Initialization =====
+async function ensureGoogleInit() {
 
-  await gapi.client.init({
-    apiKey: API_KEY,
-    discoveryDocs: [DISCOVERY_DOC],
-  });
+  if (gapiReady) return;
 
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: handleTokenResponse,
-  });
+  if (!googleInitPromise) {
 
-  gapiReady = true;
+    googleInitPromise = (async () => {
 
-  restoreToken();
+      await new Promise(resolve =>
+        gapi.load("client", resolve)
+      );
+
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+      });
+
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: handleTokenResponse,
+      });
+
+      restoreToken();
+
+      gapiReady = true;
+
+      console.log("Google API initialized");
+
+    })();
+
+  }
+
+  return googleInitPromise;
 }
+
 
 // ===== Token Handler =====
 function handleTokenResponse(resp) {
@@ -1097,11 +1120,15 @@ function handleTokenResponse(resp) {
 
   gapi.client.setToken(resp);
 
-  // persist token for refresh
-  localStorage.setItem("gdrive_token", JSON.stringify(resp));
+  // save token so refresh keeps login
+  localStorage.setItem(
+    "gdrive_token",
+    JSON.stringify(resp)
+  );
 
   console.log("Google Drive Authorized");
 }
+
 
 // ===== Restore Token After Refresh =====
 function restoreToken() {
@@ -1112,93 +1139,51 @@ function restoreToken() {
     const token = JSON.parse(saved);
     gapi.client.setToken(token);
   }
+
 }
+
 
 // ===== Login Button =====
-function authorizeDrive() {
+async function authorizeDrive() {
+
+  await ensureGoogleInit();
 
   if (!gapi.client.getToken()) {
-    tokenClient.requestAccessToken({ prompt: "consent" });
+
+    tokenClient.requestAccessToken({
+      prompt: "consent"
+    });
+
   }
+
 }
+
 
 // ===== Silent Auth =====
-function silentAuth() {
+async function silentAuth() {
+
+  await ensureGoogleInit();
 
   if (!gapi.client.getToken()) {
-    tokenClient.requestAccessToken({ prompt: "consent" });
+
+    tokenClient.requestAccessToken({
+      prompt: ""
+    });
+
   }
+
 }
 
-// ===== Page Init =====
 
-window.onload = async () => {
-
-  await initGoogle();
+// ===== Page Init (NO Google Auth) =====
+window.addEventListener("DOMContentLoaded", () => {
 
   document
     .getElementById("authorize_button")
     .addEventListener("click", authorizeDrive);
 
-  // attempt silent auth once user interacts
-  document.addEventListener(
-    "click",
-    () => silentAuth(),
-    { once: true }
-  );
-};
-
-window.addEventListener("load", async () => {
-
-  try {
-
-    // initialize Google API
-    await initGoogle();
-
-    // attempt silent login if no token yet
-    if (!gapi.client.getToken()) {
-
-      await new Promise((resolve, reject) => {
-
-        tokenClient.callback = (resp) => {
-
-          if (resp.error) {
-            reject(resp);
-            return;
-          }
-
-          gapi.client.setToken(resp);
-          resolve(resp);
-        };
-
-        tokenClient.requestAccessToken({ prompt: "consent" });
-
-      });
-
-    }
-
-    // run sync only once per browser session
-    if (!sessionStorage.getItem("driveAutoSynced")) {
-
-      console.log("Auto Google Drive sync running...");
-
-      await googleIn();
-
-      sessionStorage.setItem("driveAutoSynced", "true");
-
-    } else {
-
-      console.log("Auto sync already done this session.");
-
-    }
-
-  } catch (err) {
-
-    console.log("Auto Google sync skipped:", err);
-
-  }
-
 });
+
 //declaire fileId to set in upload and use in googleIn
 
 async function uploadToDrive() {
