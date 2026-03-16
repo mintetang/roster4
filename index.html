@@ -44,13 +44,17 @@
         </button>--> 
         <label id="googleNote">
             點名時請先<span>"登入認證"</span>=>“讀回Google”<br>
-            點名完成後再<span>"登入認證"</span>=>“儲存Google”
+            點名完成後再<span>"登入認證"</span>=>“儲存Google”<br>
+            <span>登出Google帳號</span><br>
+            </label>
           </label>
           <button id="authorize_button">登入認證</button>
           ==>
           <button id="googleIn" onclick="googleIn()">讀回Google</button>
           OR
           <button id="update_button" onclick="overwriteFile()">儲存Google</button>
+          ==>
+          <button id="logout_button" onclick="logoutDrive()">登出Google</button>
         <button id="clean" 
         onclick="cleanSelectedClass()">刪除出席記錄 
         </div>

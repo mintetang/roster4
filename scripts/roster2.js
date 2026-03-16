@@ -1354,6 +1354,16 @@ async function overwriteFile() {
   }
 }
 
+function logoutDrive() {
+
+  const token = gapi.client.getToken();
+
+  if (token) {
+    google.accounts.oauth2.revoke(token.access_token);
+    gapi.client.setToken(null);
+    localStorage.removeItem("gdrive_token");
+  }
+}
 //make button dimmed or blink after clicked
 /*document
   .getElementById("authorize_button")
