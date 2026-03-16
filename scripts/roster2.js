@@ -1354,15 +1354,39 @@ async function overwriteFile() {
   }
 }
 
-function logoutDrive() {
+async function logoutDrive() {
 
-  const token = gapi.client.getToken();
+  try {
 
-  if (token) {
-    google.accounts.oauth2.revoke(token.access_token);
-    gapi.client.setToken(null);
-    localStorage.removeItem("gdrive_token");
+    // initialize Google if not ready
+    await ensureGoogleInit();
+
+    const token = gapi.client?.getToken();
+
+    if (token) {
+
+      google.accounts.oauth2.revoke(token.access_token);
+
+      gapi.client.setToken(null);
+
+      localStorage.removeItem("gdrive_token");
+
+      console.log("Google Drive logged out");
+
+      alert("已登出 Google Drive");
+
+    } else {
+
+      console.log("No active Google session");
+
+    }
+
+  } catch (err) {
+
+    console.error("Logout failed:", err);
+
   }
+
 }
 //make button dimmed or blink after clicked
 /*document
