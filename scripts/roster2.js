@@ -13,7 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // Optional: update students immediately
         showStudentsList();
     });
+    //clear localstorage when login
+    const hasInitialized = sessionStorage.getItem("sessionInitialized");
+            if (!hasInitialized) {
+            // First load in this browser tab/session
+            localStorage.clear();
 
+            sessionStorage.setItem("sessionInitialized", "true");
+        }
+    
     populateClasses();
     showStudentsList();
 });
