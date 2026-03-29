@@ -1,29 +1,85 @@
 //roster2.js
-document.addEventListener("DOMContentLoaded", () => {
-    const classSelector =
-        document.getElementById('classSelector');
+document.addEventListener("DOMContentLoaded", async () => {
+  const classSelector = document.getElementById("classSelector");
 
-    // ✅ Step 1: Always save on change
-    classSelector.addEventListener('change', () => {
-        localStorage.setItem(
-            'selectedClass',
-            classSelector.value
-        );
+  // 🛡️ Guard: ensure element exists
+  if (!classSelector) {
+    console.warn("classSelector not found");
+    return;
+  }
 
-        // Optional: update students immediately
-        showStudentsList();
-    });
-    //clear localstorage when login
-    const hasInitialized = sessionStorage.getItem("sessionInitialized");
-            if (!hasInitialized) {
-            // First load in this browser tab/session
-            localStorage.clear();
+  // =========================
+  // 🔐 Session Initialization
+  // =========================
+  const SESSION_KEY = "sessionInitialized";
+  const state = sessionStorage.getItem(SESSION_KEY);
 
-            sessionStorage.setItem("sessionInitialized", "true");
-        }
-    
-    populateClasses();
+  if (state !== "done") {
+    sessionStorage.setItem(SESSION_KEY, "initializing");
+
+    try {
+      // ✅ Only clear app-specific keys
+      ["selectedClass", "user", "token"].forEach(key =>
+        localStorage.removeItem(key)
+      );
+
+      // ✅ Ensure logout completes
+      if (typeof logoutDrive === "function") {
+        await logoutDrive();
+      }
+
+      // ✅ Ensure login completes
+      if (typeof googleIn !== "function") {
+        throw new Error("googleIn not available");
+      }
+
+      const loginResult = await googleIn();
+
+      if (!loginResult) {
+        throw new Error("Login failed");
+      }
+
+      sessionStorage.setItem(SESSION_KEY, "done");
+
+    } catch (err) {
+      console.error("Session init failed:", err);
+
+      sessionStorage.removeItem(SESSION_KEY); // allow retry
+      return; // 🚨 stop app init if auth failed
+    }
+  }
+
+  // =========================
+  // 🎯 Restore Saved State
+  // =========================
+  const savedClass = localStorage.getItem("selectedClass");
+  if (savedClass) {
+    classSelector.value = savedClass;
+  }
+
+  // =========================
+  // 🎧 Event Binding
+  // =========================
+  classSelector.addEventListener("change", () => {
+    localStorage.setItem("selectedClass", classSelector.value);
+
+    // Update UI safely
+    try {
+      showStudentsList();
+    } catch (err) {
+      console.error("showStudentsList failed:", err);
+    }
+  });
+
+  // =========================
+  // 🚀 Initial Rendering
+  // =========================
+  try {
+    await populateClasses();
     showStudentsList();
+  } catch (err) {
+    console.error("Initial render failed:", err);
+  }
 });
 
 
