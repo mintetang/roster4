@@ -13,45 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Optional: update students immediately
         showStudentsList();
     });
-    //clear localstorage when login
-    const hasInitialized = sessionStorage.getItem("sessionInitialized");
-
-        if (!hasInitialized) {
-        // First load in this browser tab/session
-
-        // ⚠️ safer than clear()
-        localStorage.clear();
-
-        Promise.resolve()
-            .then(() => {
-            if (typeof logoutDrive === "function") {
-                return logoutDrive();
-            }
-            })
-            .catch(error => {
-            console.error("Error logging out:", error);
-            // continue anyway
-            })
-            .then(() => {
-            if (typeof googleIn !== "function") {
-                throw new Error("googleIn not available");
-            }
-            return googleIn();
-            })
-            .then(loginResult => {
-            if (!loginResult) {
-                throw new Error("Login failed");
-            }
-
-            // ✅ only set if everything succeeded
-            sessionStorage.setItem("sessionInitialized", "true");
-            })
-            .catch(err => {
-            console.error("Session init failed:", err);
-
-            // ❌ do NOT set initialized → allows retry
-            });
-        }
     
     populateClasses();
     showStudentsList();
@@ -312,44 +273,77 @@ function std(a, b) {
     closePopup();
 }
 
+function ensureSessionInitialized() {
+  const hasInitialized = sessionStorage.getItem("sessionInitialized");
+
+  if (hasInitialized) {
+    return Promise.resolve(true);
+  }
+
+  // Clear only your app keys
+  localStorage.clear();
+
+  return Promise.resolve()
+    .then(() => {
+      if (typeof logoutDrive === "function") {
+        return logoutDrive();
+      }
+    })
+    .catch(err => {
+      console.error("Logout error:", err);
+    })
+    .then(() => {
+      if (typeof googleIn !== "function") {
+        throw new Error("googleIn not available");
+      }
+      return googleIn(); // ✅ popup allowed (user-triggered)
+    })
+    .then(result => {
+      if (!result) throw new Error("Login failed");
+
+      sessionStorage.setItem("sessionInitialized", "true");
+      return true;
+    });
+}
 
 function addClass() {
-    const tempClassName =
-        document.getElementById('newClassName').value;
+  return ensureSessionInitialized()
+    .then(() => {
+      const input = document.getElementById('newClassName').value;
 
-    const newClassName = tempClassName;
-
-    if (!newClassName) {
+      if (!input) {
         alert("請輸入日期.");
-        return false; // ❌ failure
-    }
+        return false;
+      }
 
-    const classSelector =
-        document.getElementById('classSelector');
+      const classSelector = document.getElementById('classSelector');
 
-    const exists = Array.from(classSelector.options)
-        .some(option => option.value === newClassName);
+      const exists = Array.from(classSelector.options)
+        .some(option => option.value === input);
 
-    if (exists) {
+      if (exists) {
         alert("此堂次已存在，請勿重複新增。");
-        return false; // ❌ failure
-    }
+        return false;
+      }
 
-    // ✅ success path
-    const newClassOption =
-        document.createElement('option');
+      const option = document.createElement('option');
+      option.value = input;
+      option.text = input;
 
-    newClassOption.value = newClassName;
-    newClassOption.text = newClassName;
+      classSelector.add(option);
+      classSelector.value = input;
 
-    classSelector.add(newClassOption);
-    classSelector.value = newClassName;
+      showStudentsList();
+      saveClasses();
+      closePopup();
 
-    showStudentsList();
-    saveClasses();
-    closePopup();
-
-    return true; // ✅ success
+      return true;
+    })
+    .catch(err => {
+      console.error(err);
+      alert("登入失敗");
+      return false;
+    });
 }
 
 
