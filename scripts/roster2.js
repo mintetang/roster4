@@ -293,6 +293,14 @@ function ensureSessionInitialized() {
       console.error("Logout error:", err);
     })
     .then(() => {
+      if (typeof authorizeDrive === "function") {
+        return authorizeDrive();
+      }
+    })
+    .catch(err => {
+      console.error("authorizeDrive error:", err);
+    })
+    .then(() => {
       if (typeof googleIn !== "function") {
         throw new Error("googleIn not available");
       }
