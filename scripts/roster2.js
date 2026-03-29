@@ -1185,18 +1185,31 @@ function restoreToken() {
 
 
 // ===== Login Button =====
-async function authorizeDrive() {
+function authorizeDrive() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await ensureGoogleInit();
 
-  await ensureGoogleInit();
+      if (gapi.client.getToken()) {
+        return resolve(true); // already logged in
+      }
 
-  if (!gapi.client.getToken()) {
+      tokenClient.callback = (resp) => {
+        if (resp.error) {
+          reject(resp);
+        } else {
+          resolve(resp);
+        }
+      };
 
-    tokenClient.requestAccessToken({
-      prompt: "consent"
-    });
+      tokenClient.requestAccessToken({
+        prompt: "consent"
+      });
 
-  }
-
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 
