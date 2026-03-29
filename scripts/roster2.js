@@ -284,61 +284,70 @@ function ensureSessionInitialized() {
   localStorage.clear();
 
   return Promise.resolve()
-    .then(() => {
-      if (typeof logoutDrive === "function") {
-        return logoutDrive();
-      }
-    })
-    .catch(err => {
-      console.error("Logout error:", err);
-    })
-    .then(() => {
-      if (typeof googleIn !== "function") {
-        throw new Error("googleIn not available");
-      }
-      return googleIn(); // ✅ popup allowed (user-triggered)
-    })
-    .then(result => {
-      if (!result) throw new Error("Login failed");
+  .then(() => {
+    if (typeof logoutDrive === "function") {
+      return logoutDrive();
+    }
+  })
+  .catch(err => {
+    console.error("Logout error:", err);
+    // continue anyway
+  })
+  .then(() => {
+    // 🔐 Step 1: Google OAuth
+    return authorizeDrive();
+  })
+  .then(() => {
+    // 👤 Step 2: App-level login (optional but recommended)
+    if (typeof googleIn === "function") {
+      return googleIn();
+    }
+  })
+  .then((result) => {
+    // Optional validation (depends on your implementation)
+    if (result === false) {
+      throw new Error("googleIn failed");
+    }
 
-      sessionStorage.setItem("sessionInitialized", "true");
-      return true;
-    });
+    sessionStorage.setItem("sessionInitialized", "true");
+    return true;
+  })
+  .catch(err => {
+    console.error("Session init failed:", err);
+
+    // ❗ allow retry next time
+    sessionStorage.removeItem("sessionInitialized");
+
+    throw err; // propagate to caller (e.g., addClass)
+  });
 }
 
 function addClass() {
-  ensureSessionInitialized()
+  return ensureSessionInitialized()
     .then(() => {
-      const tempClassName =
-        document.getElementById('newClassName').value;
+      const input = document.getElementById('newClassName').value;
 
-      const newClassName = tempClassName;
-
-      if (!newClassName) {
+      if (!input) {
         alert("請輸入日期.");
         return false;
       }
 
-      const classSelector =
-        document.getElementById('classSelector');
+      const classSelector = document.getElementById('classSelector');
 
       const exists = Array.from(classSelector.options)
-        .some(option => option.value === newClassName);
+        .some(option => option.value === input);
 
       if (exists) {
         alert("此堂次已存在，請勿重複新增。");
         return false;
       }
 
-      // ✅ success path
-      const newClassOption =
-        document.createElement('option');
+      const option = document.createElement('option');
+      option.value = input;
+      option.text = input;
 
-      newClassOption.value = newClassName;
-      newClassOption.text = newClassName;
-
-      classSelector.add(newClassOption);
-      classSelector.value = newClassName;
+      classSelector.add(option);
+      classSelector.value = input;
 
       showStudentsList();
       saveClasses();
@@ -347,11 +356,10 @@ function addClass() {
       return true;
     })
     .catch(err => {
-      console.error("Session/login failed:", err);
-      alert("登入失敗，請重試");
+      console.error(err);
+      alert("登入失敗");
+      return false;
     });
-
-  return false; // prevent immediate success return
 }
 
 
@@ -1185,18 +1193,31 @@ function restoreToken() {
 
 
 // ===== Login Button =====
-async function authorizeDrive() {
+function authorizeDrive() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await ensureGoogleInit();
 
-  await ensureGoogleInit();
+      if (gapi.client.getToken()) {
+        return resolve(true); // already logged in
+      }
 
-  if (!gapi.client.getToken()) {
+      tokenClient.callback = (resp) => {
+        if (resp.error) {
+          reject(resp);
+        } else {
+          resolve(resp);
+        }
+      };
 
-    tokenClient.requestAccessToken({
-      prompt: "consent"
-    });
+      tokenClient.requestAccessToken({
+        prompt: "consent"
+      });
 
-  }
-
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 
