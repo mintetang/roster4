@@ -1,85 +1,60 @@
 //roster2.js
-document.addEventListener("DOMContentLoaded", async () => {
-  const classSelector = document.getElementById("classSelector");
+document.addEventListener("DOMContentLoaded", () => {
+    const classSelector =
+        document.getElementById('classSelector');
 
-  // 🛡️ Guard: ensure element exists
-  if (!classSelector) {
-    console.warn("classSelector not found");
-    return;
-  }
+    // ✅ Step 1: Always save on change
+    classSelector.addEventListener('change', () => {
+        localStorage.setItem(
+            'selectedClass',
+            classSelector.value
+        );
 
-  // =========================
-  // 🔐 Session Initialization
-  // =========================
-  const SESSION_KEY = "sessionInitialized";
-  const state = sessionStorage.getItem(SESSION_KEY);
+        // Optional: update students immediately
+        showStudentsList();
+    });
+    //clear localstorage when login
+    const hasInitialized = sessionStorage.getItem("sessionInitialized");
 
-  if (state !== "done") {
-    sessionStorage.setItem(SESSION_KEY, "initializing");
+        if (!hasInitialized) {
+        // First load in this browser tab/session
 
-    try {
-      // ✅ Only clear app-specific keys
-      ["selectedClass", "user", "token"].forEach(key =>
-        localStorage.removeItem(key)
-      );
+        // ⚠️ safer than clear()
+        localStorage.clear();
 
-      // ✅ Ensure logout completes
-      if (typeof logoutDrive === "function") {
-        await logoutDrive();
-      }
+        Promise.resolve()
+            .then(() => {
+            if (typeof logoutDrive === "function") {
+                return logoutDrive();
+            }
+            })
+            .catch(error => {
+            console.error("Error logging out:", error);
+            // continue anyway
+            })
+            .then(() => {
+            if (typeof googleIn !== "function") {
+                throw new Error("googleIn not available");
+            }
+            return googleIn();
+            })
+            .then(loginResult => {
+            if (!loginResult) {
+                throw new Error("Login failed");
+            }
 
-      // ✅ Ensure login completes
-      if (typeof googleIn !== "function") {
-        throw new Error("googleIn not available");
-      }
+            // ✅ only set if everything succeeded
+            sessionStorage.setItem("sessionInitialized", "true");
+            })
+            .catch(err => {
+            console.error("Session init failed:", err);
 
-      const loginResult = await googleIn();
-
-      if (!loginResult) {
-        throw new Error("Login failed");
-      }
-
-      sessionStorage.setItem(SESSION_KEY, "done");
-
-    } catch (err) {
-      console.error("Session init failed:", err);
-
-      sessionStorage.removeItem(SESSION_KEY); // allow retry
-      return; // 🚨 stop app init if auth failed
-    }
-  }
-
-  // =========================
-  // 🎯 Restore Saved State
-  // =========================
-  const savedClass = localStorage.getItem("selectedClass");
-  if (savedClass) {
-    classSelector.value = savedClass;
-  }
-
-  // =========================
-  // 🎧 Event Binding
-  // =========================
-  classSelector.addEventListener("change", () => {
-    localStorage.setItem("selectedClass", classSelector.value);
-
-    // Update UI safely
-    try {
-      showStudentsList();
-    } catch (err) {
-      console.error("showStudentsList failed:", err);
-    }
-  });
-
-  // =========================
-  // 🚀 Initial Rendering
-  // =========================
-  try {
-    await populateClasses();
+            // ❌ do NOT set initialized → allows retry
+            });
+        }
+    
+    populateClasses();
     showStudentsList();
-  } catch (err) {
-    console.error("Initial render failed:", err);
-  }
 });
 
 
