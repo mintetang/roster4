@@ -307,31 +307,38 @@ function ensureSessionInitialized() {
 }
 
 function addClass() {
-  return ensureSessionInitialized()
+  ensureSessionInitialized()
     .then(() => {
-      const input = document.getElementById('newClassName').value;
+      const tempClassName =
+        document.getElementById('newClassName').value;
 
-      if (!input) {
+      const newClassName = tempClassName;
+
+      if (!newClassName) {
         alert("請輸入日期.");
         return false;
       }
 
-      const classSelector = document.getElementById('classSelector');
+      const classSelector =
+        document.getElementById('classSelector');
 
       const exists = Array.from(classSelector.options)
-        .some(option => option.value === input);
+        .some(option => option.value === newClassName);
 
       if (exists) {
         alert("此堂次已存在，請勿重複新增。");
         return false;
       }
 
-      const option = document.createElement('option');
-      option.value = input;
-      option.text = input;
+      // ✅ success path
+      const newClassOption =
+        document.createElement('option');
 
-      classSelector.add(option);
-      classSelector.value = input;
+      newClassOption.value = newClassName;
+      newClassOption.text = newClassName;
+
+      classSelector.add(newClassOption);
+      classSelector.value = newClassName;
 
       showStudentsList();
       saveClasses();
@@ -340,10 +347,11 @@ function addClass() {
       return true;
     })
     .catch(err => {
-      console.error(err);
-      alert("登入失敗");
-      return false;
+      console.error("Session/login failed:", err);
+      alert("登入失敗，請重試");
     });
+
+  return false; // prevent immediate success return
 }
 
 
