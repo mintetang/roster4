@@ -293,12 +293,12 @@ function ensureSessionInitialized() {
       console.error("Logout error:", err);
     })
     .then(() => {
-      if (typeof authorizeDrive === "function") {
-        return authorizeDrive();
+      if (typeof ensureGoogleInit === "function") {
+        return ensureGoogleInit();
       }
     })
     .catch(err => {
-      console.error("authorizeDrive error:", err);
+      console.error("ensureGoogleInit error:", err);
     })
     .then(() => {
       if (typeof googleIn !== "function") {
@@ -1305,16 +1305,13 @@ async function ensureGoogleAuth() {
 
   return token.access_token;
 }
-
 async function googleIn() {
-
   try {
-
     const accessToken = await ensureGoogleAuth();
 
     if (!accessToken) {
       alert("❌ Google Drive 未登入");
-      return;
+      return false; // ✅ important
     }
 
     if (typeof fileId === "undefined") {
@@ -1349,11 +1346,13 @@ async function googleIn() {
 
     setTimeout(() => location.reload(), 300);
 
+    return true; // ✅ VERY IMPORTANT
+
   } catch (error) {
-
     console.error("Drive Sync Failed:", error);
-
     alert("❌ 同步失敗，請重新登入 Google");
+
+    throw error; // ✅ propagate to outer catch
   }
 }
 
