@@ -32,24 +32,31 @@ function init() {
     .then(() => {
       console.log("✅ Session ready");
 
-      // Populate classes
-      populateClasses();
+       // Populate classes first
+    populateClasses();
 
-      // Restore previous selection if exists
-      const savedClass = localStorage.getItem('selectedClass');
-      if (savedClass) {
-        classSelector.value = savedClass;
-      }
+        // Restore previous selection only if it exists in options
+        const savedClass = localStorage.getItem('selectedClass');
+        if (savedClass) {
+        const optionExists = Array.from(classSelector.options)
+            .some(opt => opt.value === savedClass);
 
-      // Enable dropdown now that data is ready
-      classSelector.disabled = false;
+        if (optionExists) {
+            classSelector.value = savedClass;
+        }
+        }
 
-      // Show students list
-      showStudentsList();
+        // Enable dropdown now
+        classSelector.disabled = false;
+
+        // Only call showStudentsList if a valid selection exists
+        if (classSelector.value) {
+        showStudentsList();
+        }
     })
     .catch(err => {
-      console.error("❌ Session init failed:", err);
-      alert("登入初始化失敗");
+        console.error("❌ Session init failed:", err);
+        alert("登入初始化失敗");
     });
 }
 
