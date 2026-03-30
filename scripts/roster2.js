@@ -1,5 +1,4 @@
 // ==================== roster2.js ====================
-
 console.log("🚀 JS loaded");
 
 // Single initialization guard
@@ -18,7 +17,7 @@ function init() {
     return;
   }
 
-  // Disable dropdown until session is ready
+  // Disable dropdown until session and data are ready
   classSelector.disabled = true;
 
   // Listen to changes and save selected class
@@ -27,36 +26,42 @@ function init() {
     showStudentsList();
   });
 
-  // Ensure session is ready before populating data
+  // Ensure session is ready
   ensureSessionInitialized()
     .then(() => {
       console.log("✅ Session ready");
 
-       // Populate classes first
-    populateClasses();
+      // Populate classes first
+      populateClasses();
 
-        // Restore previous selection only if it exists in options
-        const savedClass = localStorage.getItem('selectedClass');
-        if (savedClass) {
+      // Restore previous selection only if that option exists
+      const savedClass = localStorage.getItem('selectedClass');
+      if (savedClass) {
         const optionExists = Array.from(classSelector.options)
-            .some(opt => opt.value === savedClass);
+          .some(opt => opt.value === savedClass);
 
         if (optionExists) {
-            classSelector.value = savedClass;
+          classSelector.value = savedClass;
         }
-        }
+      }
 
-        // Enable dropdown now
-        classSelector.disabled = false;
+      // If no selection yet, default to first option if available
+      if (!classSelector.value && classSelector.options.length > 0) {
+        classSelector.value = classSelector.options[0].value;
+      }
 
-        // Only call showStudentsList if a valid selection exists
-        if (classSelector.value) {
+      // Enable dropdown now
+      classSelector.disabled = false;
+
+      // Call showStudentsList only if there’s a valid selection
+      if (classSelector.value) {
         showStudentsList();
-        }
+      }
+
     })
     .catch(err => {
-        console.error("❌ Session init failed:", err);
-        alert("登入初始化失敗");
+      console.error("❌ Session init failed:", err);
+      alert("登入初始化失敗");
     });
 }
 
@@ -67,7 +72,6 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
-
 
 function showAddStudentOrgForm() {
     document.getElementById('addStudentOrgPopup').
