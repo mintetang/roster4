@@ -1,5 +1,18 @@
 // ==================== roster2.js ====================
 console.log("🚀 JS loaded");
+// ===== Page Init (NO Google Auth) =====
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("🔥 DOM fully loaded");
+
+  // ===== Google Drive button =====
+  const authorizeBtn = document.getElementById("authorize_button");
+  if (authorizeBtn) {
+    authorizeBtn.addEventListener("click", authorizeDrive);
+  }
+
+  // ===== Class roster init =====
+  init(); // call the init function we defined before
+});
 
 // Single initialization guard
 let initialized = false;
@@ -63,14 +76,6 @@ function init() {
       console.error("❌ Session init failed:", err);
       alert("登入初始化失敗");
     });
-}
-
-// ==================== Trigger init ====================
-// Works regardless of script position / DOM ready state
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
 }
 
 function showAddStudentOrgForm() {
@@ -1274,14 +1279,7 @@ async function silentAuth() {
 }
 
 
-// ===== Page Init (NO Google Auth) =====
-window.addEventListener("DOMContentLoaded", () => {
 
-  document
-    .getElementById("authorize_button")
-    .addEventListener("click", authorizeDrive);
-
-});
 
 //declaire fileId to set in upload and use in googleIn
 
@@ -1536,20 +1534,4 @@ async function logoutDrive() {
   }
 
 }
-//make button dimmed or blink after clicked
-/*document
-  .getElementById("authorize_button")
-  .addEventListener("click", function () {
-    this.classList.add("dimmed");
-  });
-document.getElementById("upload_button").addEventListener("click", function () {
-  this.classList.add("blink");
-});
-
-document.getElementById("googleIn").addEventListener("click", function () {
-  this.classList.add("blink");
-});
-
-document.getElementById("update_button").addEventListener("click", function () {
-  this.classList.add("blink");
-});*/
+window.init = init; // optional, for debugging
