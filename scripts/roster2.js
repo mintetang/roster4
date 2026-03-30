@@ -11,14 +11,14 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // ===== Class roster init =====
-  init(); // call the init function we defined before
+  initA(); // call the init function we defined before
 });
 
 // Single initialization guard
 let initialized = false;
 
 // Main initialization function
-function init() {
+function initA() {
   if (initialized) return;
   initialized = true;
 
@@ -1534,4 +1534,3 @@ async function logoutDrive() {
   }
 
 }
-window.init = init; // optional, for debugging
