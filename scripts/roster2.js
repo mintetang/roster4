@@ -1,5 +1,6 @@
 //roster2.js
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("🔥 DOM loaded");
   const classSelector = document.getElementById('classSelector');
 
   if (!classSelector) {
