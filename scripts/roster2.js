@@ -1,33 +1,66 @@
-//roster2.js
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("🔥 DOM loaded");
-  const classSelector = document.getElementById('classSelector');
+// ==================== roster2.js ====================
 
+console.log("🚀 JS loaded");
+
+// Single initialization guard
+let initialized = false;
+
+// Main initialization function
+function init() {
+  if (initialized) return;
+  initialized = true;
+
+  console.log("🔥 Init running");
+
+  const classSelector = document.getElementById('classSelector');
   if (!classSelector) {
     console.error("classSelector not found");
     return;
   }
 
-  // ✅ Step 1: Save on change
+  // Disable dropdown until session is ready
+  classSelector.disabled = true;
+
+  // Listen to changes and save selected class
   classSelector.addEventListener('change', () => {
     localStorage.setItem('selectedClass', classSelector.value);
     showStudentsList();
   });
 
-  // ✅ Step 2: Ensure session BEFORE anything else
+  // Ensure session is ready before populating data
   ensureSessionInitialized()
     .then(() => {
       console.log("✅ Session ready");
 
-      // ✅ Now safe to run
+      // Populate classes
       populateClasses();
+
+      // Restore previous selection if exists
+      const savedClass = localStorage.getItem('selectedClass');
+      if (savedClass) {
+        classSelector.value = savedClass;
+      }
+
+      // Enable dropdown now that data is ready
+      classSelector.disabled = false;
+
+      // Show students list
       showStudentsList();
     })
     .catch(err => {
       console.error("❌ Session init failed:", err);
       alert("登入初始化失敗");
     });
-});
+}
+
+// ==================== Trigger init ====================
+// Works regardless of script position / DOM ready state
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
+
 
 function showAddStudentOrgForm() {
     document.getElementById('addStudentOrgPopup').
