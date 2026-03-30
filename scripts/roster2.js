@@ -1,23 +1,32 @@
 //roster2.js
 document.addEventListener("DOMContentLoaded", () => {
-    const classSelector =
-        document.getElementById('classSelector');
+  const classSelector = document.getElementById('classSelector');
 
-    // ✅ Step 1: Always save on change
-    classSelector.addEventListener('change', () => {
-        localStorage.setItem(
-            'selectedClass',
-            classSelector.value
-        );
+  if (!classSelector) {
+    console.error("classSelector not found");
+    return;
+  }
 
-        // Optional: update students immediately
-        showStudentsList();
-    });
-    
-    populateClasses();
+  // ✅ Step 1: Save on change
+  classSelector.addEventListener('change', () => {
+    localStorage.setItem('selectedClass', classSelector.value);
     showStudentsList();
-});
+  });
 
+  // ✅ Step 2: Ensure session BEFORE anything else
+  ensureSessionInitialized()
+    .then(() => {
+      console.log("✅ Session ready");
+
+      // ✅ Now safe to run
+      populateClasses();
+      showStudentsList();
+    })
+    .catch(err => {
+      console.error("❌ Session init failed:", err);
+      alert("登入初始化失敗");
+    });
+});
 
 function showAddStudentOrgForm() {
     document.getElementById('addStudentOrgPopup').
@@ -293,18 +302,18 @@ function ensureSessionInitialized() {
       console.error("Logout error:", err);
     })
     .then(() => {
-      if (typeof ensureGoogleInit === "function") {
-        return ensureGoogleInit();
+      if (typeof authorizeDrive === "function") {
+        return authorizeDrive();
       }
     })
     .catch(err => {
-      console.error("ensureGoogleInit error:", err);
+      console.error("authorizeDrive error:", err);
     })
     .then(() => {
-      if (typeof googleIn !== "function") {
-        throw new Error("googleIn not available");
+      if (typeof googleInS !== "function") {
+        throw new Error("googleInS not available");
       }
-      return googleIn(); // ✅ popup allowed (user-triggered)
+      return googleInS(); // ✅ popup allowed (user-triggered)
     })
     .then(result => {
       if (!result) throw new Error("Login failed");
@@ -315,8 +324,6 @@ function ensureSessionInitialized() {
 }
 
 function addClass() {
-  return ensureSessionInitialized()
-    .then(() => {
       const input = document.getElementById('newClassName').value;
 
       if (!input) {
@@ -344,14 +351,7 @@ function addClass() {
       showStudentsList();
       saveClasses();
       closePopup();
-
       return true;
-    })
-    .catch(err => {
-      console.error(err);
-      alert("登入失敗");
-      return false;
-    });
 }
 
 
@@ -1356,6 +1356,56 @@ async function googleIn() {
   }
 }
 
+async function googleInS() {
+  try {
+    const accessToken = await ensureGoogleAuth();
+
+    if (!accessToken) {
+      console.log("❌ Google Drive 未登入");
+      return false; // ✅ important
+    }
+
+    if (typeof fileId === "undefined") {
+      fileId = document.getElementById("pfileId").innerText;
+    }
+
+    const fetchUrl =
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+
+    const response = await fetch(fetchUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const fileContent = await response.json();
+
+    // clear old data
+    localStorage.clear();
+
+    // restore data
+    for (const key in fileContent) {
+      localStorage.setItem(key, fileContent[key]);
+    }
+
+    console.log("✅ 成功從 Google Drive 同步資料");
+
+    //setTimeout(() => location.reload(), 300);
+
+    return true; // ✅ VERY IMPORTANT
+
+  } catch (error) {
+    console.error("Drive Sync Failed:", error);
+    console.log("❌ 同步失敗，請重新登入 Google");
+
+    throw error; // ✅ propagate to outer catch
+  }
+}
 
 // Assuming you have authenticated and obtained an access token
 // and the gapi client library is loaded.
