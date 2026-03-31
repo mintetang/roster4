@@ -590,7 +590,7 @@ const RosterApp = (() => {
             }
         });
         // Append the new div to the result session
-    }
+    };
 
         return {
             init, overwriteFile, logoutDrive, showStudentsList, addStudentToList,
