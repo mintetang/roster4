@@ -196,7 +196,19 @@ const RosterApp = (() => {
         );
         return li;
     };
-
+    // ================================
+    // Get saved attendance helper
+    // ================================
+    const getSavedAttendance = (className, studentName, type) => {
+        try {
+            const attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            const record = attendanceData.find(r => r.class === className && r.name === studentName);
+            return record ? record[type] || 'reset' : 'reset';
+        } catch (e) {
+            console.error("getSavedAttendance error:", e);
+            return 'reset';
+        }
+    };
     const showStudentsList = () => {
         const classSelector = document.getElementById('classSelector');
         if (!classSelector || classSelector.selectedIndex === -1) return;
@@ -472,6 +484,7 @@ const RosterApp = (() => {
         saveClasses, populateClasses, submitAttendance, exportLocalStorage, rlsFromFile,
         restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
         showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
+        getSavedAttendance,
     };
 
 })();
