@@ -286,9 +286,9 @@ const RosterApp = (() => {
 
         document.getElementById('totalStudents').innerText = total;
         document.getElementById('totalPresent1').innerText = present1;
-        document.getElementById('totalAbsent1').innerText = total-present1;
+        //document.getElementById('totalAbsent1').innerText = total-present1;
         document.getElementById('totalPresent2').innerText = present2;
-        document.getElementById('totalAbsent2').innerText = total-present2;
+        //document.getElementById('totalAbsent2').innerText = total-present2;
     };
 
     // ================================
