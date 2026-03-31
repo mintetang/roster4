@@ -433,3 +433,13 @@ const RosterApp = (() => {
 // Initialize on DOM ready
 // ================================
 window.addEventListener("DOMContentLoaded", RosterApp.init);
+
+window.overwriteFile = RosterApp.overwriteFile;
+window.logoutDrive = RosterApp.logoutDrive;
+window.showStudentsList = RosterApp.showStudentsList;
+window.submitAttendance = RosterApp.submitAttendance;
+window.histRate = RosterApp.histRate;
+window.exportLocalStorage = RosterApp.exportLocalStorage;
+window.searchAndHighlight = RosterApp.searchAndHighlight;
+window.showAddClassForm = RosterApp.showAddClassForm;
+window.showAddStudentForm = RosterApp.showAddStudentForm;
