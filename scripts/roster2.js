@@ -11,31 +11,46 @@ const RosterApp = (() => {
         const token = sessionStorage.getItem("access_token");
         const data = sessionStorage.getItem("googleData");
 
-        // ✅ Allow already-restored sessions
-        if (window.__DATA_RESTORED__) {
-            console.log("Already restored, skipping init");
-            return;
-        }
+        console.log("INIT:", {
+            token: !!token,
+            googleData: data
+        });
 
-        if (!token || !data) {
-            console.warn("No auth/data → redirect");
+        // ❌ No token → must login
+        if (!token) {
+            console.warn("No token → redirect");
             window.location.href = "cover.html";
             return;
         }
 
-        let parsed;
-        try {
-            parsed = JSON.parse(data);
-        } catch (e) {
-            console.error("Invalid Google data", e);
-            sessionStorage.clear();
-            window.location.href = "cover.html";
-            return;
+        // ✅ First-time load (from Google)
+        if (data) {
+            try {
+                const parsed = JSON.parse(data);
+                RosterApp.restoreFromGoogle(parsed);
+
+                // remove AFTER restore
+                sessionStorage.removeItem("googleData");
+
+            } catch (e) {
+                console.error("Invalid Google data", e);
+                sessionStorage.clear();
+                window.location.href = "cover.html";
+                return;
+            }
+        } else {
+            // ✅ Already restored → just use localStorage
+            console.log("Using existing localStorage (no googleData)");
         }
 
-        RosterApp.restoreFromGoogle(parsed);
+        // ✅ Always run UI setup
+        populateClasses();
+        showStudentsList();
     };
-
+    console.log("INIT:", {
+    token: !!sessionStorage.getItem("access_token"),
+        googleData: sessionStorage.getItem("googleData")
+    });
         // Prevent stale reuse
         //sessionStorage.removeItem("googleData");
 
@@ -359,20 +374,28 @@ const RosterApp = (() => {
         closePopup();
     };
 
-    const restoreFromGoogle = data => {
+    const restoreFromGoogle = (data) => {
         try {
             console.log("Incoming Google data:", data);
 
+            // ✅ Safe guard (NO THROW)
             if (!data || typeof data !== 'object') {
-                throw new Error("Invalid data");
+                console.warn("⚠️ Invalid Google data → skip restore");
+                return;
             }
 
+            if (Object.keys(data).length === 0) {
+                console.warn("⚠️ Empty Google data → skip restore");
+                return;
+            }
+
+            // ✅ Clear only if valid data
             localStorage.clear();
 
             for (const k in data) {
                 let value = data[k];
 
-                // ✅ Fix: ensure value is string
+                // ✅ Always store string
                 if (typeof value !== 'string') {
                     value = JSON.stringify(value);
                 }
@@ -380,15 +403,15 @@ const RosterApp = (() => {
                 localStorage.setItem(k, value);
             }
 
-            console.log("Restored localStorage:", localStorage);
-
-            window.__DATA_RESTORED__ = true;
+            console.log("✅ Restored localStorage:", localStorage);
 
             populateClasses();
             showStudentsList();
 
         } catch (e) {
-            console.error("Restore error:", e);
+            console.error("❌ Restore error:", e);
+
+            // 🚨 Only fatal errors reach here
             alert("❌ 資料載入失敗，請重新登入");
             sessionStorage.clear();
             window.location.href = "cover.html";
