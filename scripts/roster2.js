@@ -597,11 +597,84 @@ const RosterApp = (() => {
             saveClasses, populateClasses, submitAttendance, exportLocalStorage, rlsFromFile,
             restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
             showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
-            getSavedAttendance,histRate,showAttendanceResult,handleSubmit,closePopup, 
+            getSavedAttendance,histRate,showAttendanceResult,handleSubmit,closePopup,addStudent,
+            rlsFromFile,  
         };
 
     })();
+// ================================
+// Delete selected class and all related data (students, attendance records, colors, history)
+// ================================
+    function cleanSelectedClass()
+        {
+        const reCheck = prompt('！！！請輸入"YES"來確認刪除目前的日期出席記錄，確認後"無法回復"！！！');
+        //console.log(reCheck); 
+        if (reCheck === 'YES') {
+    // Perform actions for cancellation, e.g., stop further processing
 
+        const classSelector = 
+            document.getElementById('classSelector');
+        const selectedClass = classSelector.
+            options[classSelector.selectedIndex].value;
+            //console.log(selectedClass);
+        //delete the studentlist from the selectedClass
+        const savedStudents = JSON.parse
+                (localStorage.getItem('students'));
+
+        delete savedStudents[selectedClass];
+        //console.log(savedStudents);
+        localStorage.setItem
+                ('students', JSON.stringify(savedStudents));
+
+        // delete selectedClass
+        let localClass = JSON.parse
+                (localStorage.getItem('classes'));
+
+        index = localClass.findIndex(delClass => delClass === selectedClass);
+        localClass.splice(index, 1);
+        //console.log(localClass);
+        localStorage.setItem
+                ('classes', JSON.stringify(localClass));
+        // delete selectedClass attendanceData records
+        const attendanceData =
+            JSON.parse(localStorage.getItem('attendanceData')) || [];
+
+        const cleanedAttendanceData = attendanceData.filter(
+            record => record.class !== selectedClass
+        );
+
+        localStorage.setItem(
+            'attendanceData',
+            JSON.stringify(cleanedAttendanceData)
+        );
+
+        // delete selectedClass colors
+        const colors =
+            JSON.parse(localStorage.getItem('colors')) || {};
+
+        if (colors[selectedClass]) {
+            delete colors[selectedClass];
+            localStorage.setItem(
+                'colors',
+                JSON.stringify(colors)
+            );
+        }
+        // delete selectedClass attendance rate history
+        const newatt = JSON.parse
+                (localStorage.getItem('attHis'));
+        indexToDel = newatt.findIndex((obj) => selectedClass in obj );
+        newatt.splice(indexToDel, 1);
+        localStorage.setItem('attHis', 
+            JSON.stringify(newatt));
+        alert(`${selectedClass}已刪除！`);
+        //refresh
+        location.reload();
+        //localStorage.clear();
+        } else {
+        alert("輸入錯誤，無法刪除！");
+        }
+
+    }
 // ================================
 // Initialize on DOM ready
 // ================================
@@ -619,3 +692,5 @@ window.showAddStudentForm = RosterApp.showAddStudentForm;
 window.showAttendanceResult = RosterApp.showAttendanceResult;
 window.handleSubmit = RosterApp.handleSubmit;
 window.closePopup = RosterApp.closePopup;
+window.addStudent = RosterApp.addStudent;
+window.rlsFromFile = RosterApp.rlsFromFile;
