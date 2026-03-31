@@ -40,7 +40,7 @@ const RosterApp = (() => {
         RosterApp.restoreFromGoogle(parsed);
 
         // Prevent stale reuse
-        sessionStorage.removeItem("googleData");
+        //sessionStorage.removeItem("googleData");
     };
 
     // ================================
