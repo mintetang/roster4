@@ -464,19 +464,52 @@ const RosterApp = (() => {
     // ================================
     // 10. Attendance History / Chart
     // ================================
-    const histRate = className => {
+    const histRate = (className) => {
         const data = JSON.parse(localStorage.getItem('attendanceData')) || [];
-        if (!data.length) { alert("No attendance data yet."); return; }
+        if (!data.length) {
+            alert("No attendance data yet.");
+            return;
+        }
 
-        const filtered = className ? data.filter(r => r.class===className) : data;
+        const filtered = className
+            ? data.filter(r => r.class === className)
+            : data;
+
         const summary = {};
+
         filtered.forEach(r => {
-            if (!summary[r.name]) summary[r.name] = {status1:0, status2:0, total:0};
-            if (r.status1==='present') summary[r.name].status1++;
-            if (r.status2==='present') summary[r.name].status2++;
-            summary[r.name].total++;
+            if (!summary[r.name]) {
+                summary[r.name] = { status1: 0, status2: 0 };
+            }
+            if (r.status1 === 'present') summary[r.name].status1++;
+            if (r.status2 === 'present') summary[r.name].status2++;
         });
-        return summary;
+
+        const labels = Object.keys(summary);
+        const status1Data = labels.map(n => summary[n].status1);
+        const status2Data = labels.map(n => summary[n].status2);
+
+        const oldCanvas = document.getElementById('attendanceChart');
+        if (oldCanvas) oldCanvas.remove();
+
+        const canvas = document.createElement('canvas');
+        canvas.id = 'attendanceChart';
+        document.getElementById('hisSection').appendChild(canvas);
+
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Status1', data: status1Data },
+                    { label: 'Status2', data: status2Data }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, precision: 0 } }
+            }
+        });
     };
 
     return {
@@ -484,7 +517,7 @@ const RosterApp = (() => {
         saveClasses, populateClasses, submitAttendance, exportLocalStorage, rlsFromFile,
         restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
         showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
-        getSavedAttendance,
+        getSavedAttendance,histRate,
     };
 
 })();
