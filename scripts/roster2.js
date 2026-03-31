@@ -489,14 +489,20 @@ const RosterApp = (() => {
         const status1Data = labels.map(n => summary[n].status1);
         const status2Data = labels.map(n => summary[n].status2);
 
-        const oldCanvas = document.getElementById('attendanceChart');
-        if (oldCanvas) oldCanvas.remove();
+        const canvas = document.getElementById('myChart');
+        if (!canvas) {
+            console.warn("Canvas #myChart not found");
+            return;
+        }
 
-        const canvas = document.createElement('canvas');
-        canvas.id = 'attendanceChart';
-        document.getElementById('hisSection').appendChild(canvas);
+        const ctx = canvas.getContext('2d');
 
-        new Chart(canvas, {
+        // ✅ destroy previous chart (important)
+        if (window.__chart) {
+            window.__chart.destroy();
+        }
+
+        window.__chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels,
@@ -507,7 +513,9 @@ const RosterApp = (() => {
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true, precision: 0 } }
+                scales: {
+                    y: { beginAtZero: true, precision: 0 }
+                }
             }
         });
     };
