@@ -464,7 +464,7 @@ const RosterApp = (() => {
     // ================================
     // 10. Attendance History / Chart
     // ================================
-    const histRate = () {
+    const histRate = () => {
         const classSelector = document.
             getElementById('classSelector');
 
