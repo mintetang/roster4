@@ -464,71 +464,143 @@ const RosterApp = (() => {
     // ================================
     // 10. Attendance History / Chart
     // ================================
-    const histRate = (className) => {
-        const data = JSON.parse(localStorage.getItem('attendanceData')) || [];
-        if (!data.length) {
-            alert("No attendance data yet.");
+    function histRate() {
+        const classSelector = document.
+            getElementById('classSelector');
+
+        if (!classSelector || !classSelector.options ||
+            classSelector.selectedIndex === -1) {
+            console.error
+                ('Class selector is not properly defined or has no options.');
             return;
         }
+        const selectedClass = classSelector.
+            options[classSelector.selectedIndex].value;
 
-        const filtered = className
-            ? data.filter(r => r.class === className)
-            : data;
+        if (!selectedClass) {
+            console.error('Selected class is not valid.');
+            return;
+        }
+        //set attText and attClass
+        attText = document.getElementById('attendanceRate').innerText;
+        if (attText === 'NaN%')
+            {console.log('need to have attendance data to output');
+                return;
+            };
+        attClass = selectedClass;
+        //console.log(attClass);
+        //console.log(attText);  
+        //make attendance history session here
+        //const hisSection = document.getElementById('hisSection');
+        //document.getElementById("hisSection").innerText="TBD";
+        // Add content from localStorage attHis
 
-        const summary = {};
-
-        filtered.forEach(r => {
-            if (!summary[r.name]) {
-                summary[r.name] = { status1: 0, status2: 0 };
+        if (localStorage.getItem('attHis') === null){
+            console.log('no data in attHis');
             }
-            if (r.status1 === 'present') summary[r.name].status1++;
-            if (r.status2 === 'present') summary[r.name].status2++;
+            else {
+            //document.getElementById("attP").innerText = localStorage.getItem('attHis');
+            console.log(localStorage.getItem('attHis'));
+            }
+        //attObj to record the class and the attendance rate 
+        attObj = {'date': attClass,'per': attText};
+        //console.log(attObj);
+        let attArray = JSON.parse(localStorage.getItem('attHis'));
+        //console.log(attArray);
+        if (attArray === null) {
+        attArray = [];
+        attArray.push(attObj);
+        //console.log(attArray);
+        } 
+        else if (JSON.stringify(attArray).includes(attClass) !== false){
+            // Find object with the attClass;
+            //indexToUpdate = attArray.findIndex((obj) => attClass in obj );
+            indexToUpdate = attArray.findIndex(obj => obj.date === attObj.date);
+            //console.log(indexToUpdate);
+            attArray.splice(indexToUpdate, 1, attObj); 
+            // Remove 1 element at indexToUpdate and insert newObject
+            //console.log(attArray);
+        }
+        else {
+        attArray.push(attObj);
+        //console.log(attArray);
+        }
+        attArray.sort((a, b) => 
+            a.date.localeCompare(b.date));
+        //save attendance history to localStorage attHis
+        localStorage.setItem('attHis', 
+            JSON.stringify(attArray));
+        //document.getElementById("attP").innerText = localStorage.getItem('attHis');
+
+        //myChart
+
+        const arrayOfObjects = attArray;
+        const { date, per } = arrayOfObjects.reduce((acc, obj) => {
+        acc.date.push(obj.date);
+        acc.per.push(obj.per);
+        return acc;
+        }, { date: [], per: [] });
+
+        //const stringArray = ["10", "21", "3", "14", "53"];
+        const perInt = per.map(function(str) {
+        return parseInt(str, 10); // 10 specifies decimal radix
         });
+        
+        console.log(per);
 
-        const labels = Object.keys(summary);
-        const status1Data = labels.map(n => summary[n].status1);
-        const status2Data = labels.map(n => summary[n].status2);
-
-        const canvas = document.getElementById('myChart');
-        if (!canvas) {
-            console.warn("Canvas #myChart not found");
-            return;
-        }
-
-        const ctx = canvas.getContext('2d');
-
-        // ✅ destroy previous chart (important)
-        if (window.__chart) {
-            window.__chart.destroy();
-        }
-
-        window.__chart = new Chart(ctx, {
-            type: 'bar',
+        const ctx = document.getElementById('myChart').getContext('2d');
+            if(Chart.getChart("myChart")) {
+        Chart.getChart("myChart")?.destroy()
+            }                                                                           
+        mychart = new Chart(ctx, {
+            type: 'bar', // or 'line', 'pie', etc.
             data: {
-                labels,
-                datasets: [
-                    { label: 'Status1', data: status1Data },
-                    { label: 'Status2', data: status2Data }
-                ]
+                labels: date, // Array for labels on the x-axis
+                datasets: [{
+                    label: '出席率',
+                    data: perInt, // Your array of data points
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
             },
             options: {
-                responsive: true,
                 scales: {
-                    y: { beginAtZero: true, precision: 0 }
+                    y: {
+                        title: {
+                        display: true,
+                        text: '出席率 (%)'}, // Your Y-axis label
+                        beginAtZero: true
+                    }
                 }
             }
         });
-    };
+        // Append the new div to the result session
+    }
 
-    return {
-        init, overwriteFile, logoutDrive, showStudentsList, addStudentToList,
-        saveClasses, populateClasses, submitAttendance, exportLocalStorage, rlsFromFile,
-        restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
-        showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
-        getSavedAttendance,histRate,showAttendanceResult
-    };
+        return {
+            init, overwriteFile, logoutDrive, showStudentsList, addStudentToList,
+            saveClasses, populateClasses, submitAttendance, exportLocalStorage, rlsFromFile,
+            restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
+            showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
+            getSavedAttendance,histRate,showAttendanceResult
+        };
 
-})();
+    })();
 
 // ================================
 // Initialize on DOM ready
