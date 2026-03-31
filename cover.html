@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>出席系統登入</title>
+
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 20px;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>📊 出席系統</h2>
+
+  <p>
+    點擊下方按鈕開始：<br>
+    👉 登入 Google + 載入出席資料
+  </p>
+
+  <button id="startBtn">🚀 開始使用</button>
+
+  <div id="status"></div>
+
+  <script>
+    // ===== Google Config =====
+    const CLIENT_ID =
+    "273160542369-ttt03gmv0iio70vek53dqrqcfs9rt1a6.apps.googleusercontent.com";
+
+    const API_KEY =
+    "AIzaSyDZkfoh01VUEwX_uK3xn3jVvMLssdPCqoo";
+
+    const DISCOVERY_DOC =
+    "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
+
+    const SCOPES = "https://www.googleapis.com/auth/drive.file";
+    const FILE_ID = "1Hpp1mb0gL_5kUUR09j6v7HVLXfyK90Sw";
+
+    let tokenClient;
+    let isRunning = false;
+
+    const statusEl = document.getElementById("status");
+    const startBtn = document.getElementById("startBtn");
+
+    function setStatus(msg) {
+      console.log(msg);
+      statusEl.innerText = msg;
+    }
+
+    function initAuth() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (resp) => {
+          if (resp.error) {
+            setStatus("❌ 登入失敗");
+            console.error(resp);
+            isRunning = false;
+            startBtn.disabled = false;
+            return;
+          }
+
+          const token = resp.access_token;
+          sessionStorage.setItem("access_token", token);
+
+          try {
+            setStatus("📥 正在讀取 Google 資料...");
+            await loadGoogleData(token);
+
+            setStatus("✅ 完成！進入系統...");
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 500);
+
+          } catch (err) {
+            console.error(err);
+            setStatus("❌ 讀取 Google 失敗");
+            isRunning = false;
+            startBtn.disabled = false;
+          }
+        }
+      });
+    }
+
+    async function loadGoogleData(token) {
+      const res = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${FILE_ID}?alt=media`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Drive API error: " + res.status);
+      }
+
+      const data = await res.json();
+
+      // ✅ Store for index.html
+      sessionStorage.setItem("googleData", JSON.stringify(data));
+    }
+
+    startBtn.onclick = () => {
+      if (isRunning) return;
+
+      isRunning = true;
+      startBtn.disabled = true;
+
+      setStatus("🔐 正在登入 Google...");
+      tokenClient.requestAccessToken();
+    };
+
+    // Init on load
+    window.onload = initAuth;
+  </script>
+
+</body>
+</html>
