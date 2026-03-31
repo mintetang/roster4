@@ -103,10 +103,17 @@ const RosterApp = (() => {
     // ================================
     // 3. Popup & Form Handling
     // ================================
-    const openPopup = id => document.getElementById(id)?.style.display = 'block';
-    const closePopup = () => ['addStudentPopup','addClassPopup','addStudentOrgPopup','readOrgPopup','readPopup']
-        .forEach(id => document.getElementById(id)?.style.display='none');
-
+    const openPopup = id => { 
+            const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+    };
+    const closePopup = () => {
+    ['addStudentPopup','addClassPopup','addStudentOrgPopup','readOrgPopup','readPopup']
+        .forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    };
     const showAddStudentForm = () => openPopup('addStudentPopup');
     const showAddClassForm = () => openPopup('addClassPopup');
     const showAddStudentOrgForm = () => openPopup('addStudentOrgPopup');
