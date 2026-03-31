@@ -107,6 +107,105 @@
             <button id="exlocal" onclick="exportLocalStorage()">暫存紀錄</button>
             <button id="inlocal" onclick="showReadForm()">讀回暫存紀錄</button>
         </div>
+        <! popup form for local storage read >
+        <div id="addStudentOrgPopup" class="popup">
+            <h2>初始會友名單</h2>
+            <!-- Add all org memebers from json -->
+            <label for="org">
+                匯入初始會友名單?
+            </label>
+            <input type="file" hidden id="org">
+
+            <!-- Add more fields as needed 
+            <button onclick="addOrg()">
+                <button onclick="showStudentsList()">-->
+
+            <button onclick="addOrg()">
+                確認
+            </button>
+            <button onclick="closePopup()">
+                取消
+            </button>
+        </div>
+
+        <div id="readOrgPopup" class="popup">
+            <h2>使用上次會友名單</h2>
+            <!-- Add all org memebers from json -->
+            <label for="rl">
+                請注意！！！ <br>
+                名單空白才能使用上次會友名單。
+            </label>
+            <input type="file" hidden id="rl">
+
+            <!-- Add more fields as needed 
+            <button onclick="addOrg()">
+                <button onclick="showStudentsList()">-->
+
+            <button onclick="readOrg()">
+                確認
+            </button>
+            <button onclick="closePopup()">
+                取消
+            </button>
+        </div>
+
+        <div id="readPopup" class="popup">
+            <h2>select json file</h2>
+            <!-- Retore localStorage from json -->
+            <label for="restoreFileInput">
+                select json file
+            </label>
+            <input type="file" id="restoreFileInput" 
+            accept=".json" onchange="rlsFromFile(event)">
+
+            <button onclick="closePopup()">
+                取消
+            </button>
+        </div>
+
+        <div id="addClassPopup" class="popup">
+            <h2>加入日期</h2>
+            <!-- Add Class Form Content -->
+            <label for="newClassName">
+                日期:
+            </label>
+            <input type="date" id="newClassName" required>
+            <!-- <label for="session">選擇第幾堂:</label>
+            <select id="session" required>
+                <option value="第1堂" selected>第1堂</option>
+                <option value="第2堂">第2堂</option>
+                <option value="第3堂">第3堂</option>				
+
+                </select>
+            Add more fields as needed -->
+
+            <button onclick="handleSubmit()">
+                送出
+            </button>
+            <button onclick="closePopup()">
+                取消
+            </button>
+        </div>
+        <div id="addStudentPopup" class="popup">
+            <h2>加入新會友</h2>
+            <!-- Add Student Form Content -->
+            <label for="newStudentName">
+                會友名稱:
+            </label>
+            <input type="text" id="newStudentName" required>
+            <label for="newStudentRoll">
+                編號:
+            </label>
+            <input type="text" id="newStudentRoll" required>
+            <!-- Add more fields as needed -->
+
+            <button onclick="addStudent()">
+                送出
+            </button>
+            <button onclick="closePopup()">
+                取消
+            </button>
+        </div>
 
     </div>
 
