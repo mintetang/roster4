@@ -92,19 +92,15 @@ const RosterApp = (() => {
         }
     };
 
-    const logoutDrive = async () => {
+    const logoutDrive = () => {
         try {
-            const accessToken = sessionStorage.getItem("access_token");
-            if (!accessToken) { alert("未登入 Google"); return; }
+            // ✅ No dependency on google object
+            sessionStorage.removeItem("access_token");
+            sessionStorage.removeItem("googleData");
 
-            google.accounts.oauth2.revoke(accessToken, () => {
-                console.log("Google token revoked");
-                sessionStorage.removeItem("access_token");
-                sessionStorage.removeItem("googleData");
-                localStorage.removeItem("gdrive_token");
-                alert("已登出 Google Drive");
-                window.location.href = "cover.html";
-            });
+            alert("已登出 Google Drive");
+
+            window.location.href = "cover.html";
         } catch (err) {
             console.error("Logout failed:", err);
             alert("❌ 登出失敗");
