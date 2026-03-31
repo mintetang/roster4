@@ -525,7 +525,7 @@ const RosterApp = (() => {
         saveClasses, populateClasses, submitAttendance, exportLocalStorage, rlsFromFile,
         restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
         showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
-        getSavedAttendance,histRate,
+        getSavedAttendance,histRate,showAttendanceResult
     };
 
 })();
@@ -544,3 +544,4 @@ window.exportLocalStorage = RosterApp.exportLocalStorage;
 window.searchAndHighlight = RosterApp.searchAndHighlight;
 window.showAddClassForm = RosterApp.showAddClassForm;
 window.showAddStudentForm = RosterApp.showAddStudentForm;
+window.showAttendanceResult = RosterApp.showAttendanceResult;
