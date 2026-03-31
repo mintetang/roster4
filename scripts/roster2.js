@@ -365,16 +365,37 @@ const RosterApp = (() => {
 
     const restoreFromGoogle = data => {
         try {
-            if(!data || typeof data!=='object') throw new Error("Invalid data");
+            console.log("Incoming Google data:", data);
+
+            if (!data || typeof data !== 'object') {
+                throw new Error("Invalid data");
+            }
+
             localStorage.clear();
-            for(const k in data) localStorage.setItem(k,data[k]);
-            window.__DATA_RESTORED__=true;
-            populateClasses(); showStudentsList();
-        } catch(e) {
-            console.error(e); 
-            alert("❌ 資料載入失敗，請重新登入"); 
-            sessionStorage.clear(); 
-            window.location.href="cover.html";
+
+            for (const k in data) {
+                let value = data[k];
+
+                // ✅ Fix: ensure value is string
+                if (typeof value !== 'string') {
+                    value = JSON.stringify(value);
+                }
+
+                localStorage.setItem(k, value);
+            }
+
+            console.log("Restored localStorage:", localStorage);
+
+            window.__DATA_RESTORED__ = true;
+
+            populateClasses();
+            showStudentsList();
+
+        } catch (e) {
+            console.error("Restore error:", e);
+            alert("❌ 資料載入失敗，請重新登入");
+            sessionStorage.clear();
+            window.location.href = "cover.html";
         }
     };
 
