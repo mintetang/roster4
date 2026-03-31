@@ -378,26 +378,22 @@ const RosterApp = (() => {
         try {
             console.log("Incoming Google data:", data);
 
-            // ✅ Safe guard (NO THROW)
             if (!data || typeof data !== 'object') {
                 console.warn("⚠️ Invalid Google data → skip restore");
                 return;
             }
 
-            if (Object.keys(data).length === 0) {
-                console.warn("⚠️ Empty Google data → skip restore");
-                return;
-            }
-
-            // ✅ Clear only if valid data
+            // ✅ Clear only when valid
             localStorage.clear();
 
             for (const k in data) {
                 let value = data[k];
 
-                // ✅ Always store string
-                if (typeof value !== 'string') {
+                // ✅ Normalize EVERYTHING to string
+                if (typeof value === 'object') {
                     value = JSON.stringify(value);
+                } else if (typeof value !== 'string') {
+                    value = String(value);
                 }
 
                 localStorage.setItem(k, value);
@@ -405,13 +401,17 @@ const RosterApp = (() => {
 
             console.log("✅ Restored localStorage:", localStorage);
 
-            populateClasses();
-            showStudentsList();
+            // ✅ SAFE EXECUTION (critical fix)
+            try {
+                populateClasses();
+                showStudentsList();
+            } catch (uiErr) {
+                console.error("⚠️ UI render error (non-fatal):", uiErr);
+            }
 
         } catch (e) {
             console.error("❌ Restore error:", e);
 
-            // 🚨 Only fatal errors reach here
             alert("❌ 資料載入失敗，請重新登入");
             sessionStorage.clear();
             window.location.href = "cover.html";
