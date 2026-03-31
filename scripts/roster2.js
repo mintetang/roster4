@@ -598,7 +598,7 @@ const RosterApp = (() => {
             restoreFromGoogle, highlightSearchTerm, scrollToHighlightedTerm, searchAndHighlight,
             showAddStudentForm, showAddClassForm, showAddStudentOrgForm, showReadOrgForm, showReadForm,
             getSavedAttendance,histRate,showAttendanceResult,handleSubmit,closePopup,addStudent,
-            rlsFromFile,  
+            rlsFromFile, showReadForm,
         };
 
     })();
@@ -694,3 +694,4 @@ window.handleSubmit = RosterApp.handleSubmit;
 window.closePopup = RosterApp.closePopup;
 window.addStudent = RosterApp.addStudent;
 window.rlsFromFile = RosterApp.rlsFromFile;
+window.showReadForm = RosterApp.showReadForm;
