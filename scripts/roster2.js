@@ -11,6 +11,12 @@ const RosterApp = (() => {
         const token = sessionStorage.getItem("access_token");
         const data = sessionStorage.getItem("googleData");
 
+        // ✅ Allow already-restored sessions
+        if (window.__DATA_RESTORED__) {
+            console.log("Already restored, skipping init");
+            return;
+        }
+
         if (!token || !data) {
             console.warn("No auth/data → redirect");
             window.location.href = "cover.html";
@@ -27,21 +33,11 @@ const RosterApp = (() => {
             return;
         }
 
-        // DOM listeners
-        const classSelector = document.getElementById('classSelector');
-        if (classSelector) {
-            classSelector.addEventListener('change', () => {
-                localStorage.setItem('selectedClass', classSelector.value);
-                RosterApp.showStudentsList();
-            });
-        }
-
-        // Restore Google data
         RosterApp.restoreFromGoogle(parsed);
+    };
 
         // Prevent stale reuse
         //sessionStorage.removeItem("googleData");
-    };
 
     // ================================
     // 2. Google Drive Operations
