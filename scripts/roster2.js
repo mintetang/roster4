@@ -261,11 +261,11 @@ const RosterApp = (() => {
         const present1 = filtered.filter(r=>r.status1==='present').length;
         const present2 = filtered.filter(r=>r.status2==='present').length;
 
-        document.getElementById('totalStudents')?.innerText = total;
-        document.getElementById('totalPresent1')?.innerText = present1;
-        document.getElementById('totalAbsent1')?.innerText = total-present1;
-        document.getElementById('totalPresent2')?.innerText = present2;
-        document.getElementById('totalAbsent2')?.innerText = total-present2;
+        document.getElementById('totalStudents').innerText = total;
+        document.getElementById('totalPresent1').innerText = present1;
+        document.getElementById('totalAbsent1').innerText = total-present1;
+        document.getElementById('totalPresent2').innerText = present2;
+        document.getElementById('totalAbsent2').innerText = total-present2;
     };
 
     // ================================
@@ -305,7 +305,7 @@ const RosterApp = (() => {
         if(!classSelector || classSelector.selectedIndex===-1) return;
         const selectedClass = classSelector.value;
         showAttendanceResult(selectedClass);
-        document.getElementById("resultSection")?.scrollIntoView({behavior:"smooth"});
+        document.getElementById("resultSection").scrollIntoView({behavior:"smooth"});
     };
 
     const showAttendanceResult = (selectedClass) => {
